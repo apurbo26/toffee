@@ -1,10 +1,10 @@
 <?php
 
 $source_url = "https://alixbd.com/playlistconfig/playlist.m3u";
-$target_category = "Toffee";
+$new_category = "Toffee";
 $output_file = "toffee_playlist.m3u";
 
-// cURL দিয়ে M3U ডাউনলোড
+// M3U প্লেলিস্ট ডাউনলোড করা
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $source_url);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -18,48 +18,38 @@ if (!$m3u_content) {
     die("Error: M3U playlist download failed.\n");
 }
 
-// লাইন বাই লাইন ভাগ করা
 $lines = explode("\n", $m3u_content);
 $new_m3u = "#EXTM3U\n";
 
-for ($i = 0; $i < count($lines); $i++) {
-    $line = trim($lines[$i]);
+foreach ($lines as $line) {
+    $trimmed = trim($line);
 
-    // #EXTINF লাইন খোঁজা
-    if (strpos($line, '#EXTINF:') === 0) {
-        
-        // group-title="Toffee" বা ক্যাটাগরিতে "Toffee" শব্দটি থাকলে ফিল্টার করা
-        $is_toffee = false;
+    if (empty($trimmed)) {
+        continue;
+    }
 
-        if (preg_match('/group-title=["\']?([^"\',]+)["\']?/i', $line, $matches)) {
-            if (stripos($matches[1], $target_category) !== false) {
-                $is_toffee = true;
+    if (strpos($trimmed, '#EXTINF:') === 0) {
+        // বিদ্যমান group-title থাকলে তা Toffee দিয়ে রিপ্লেস করা
+        if (preg_match('/group-title=["\']?[^"\',]+["\']?/i', $trimmed)) {
+            $modified_line = preg_replace('/group-title=["\']?[^"\',]+["\']?/i', 'group-title="' . $new_category . '"', $trimmed);
+        } else {
+            // group-title না থাকলে নতুন করে যোগ করা
+            $modified_line = str_replace('#EXTINF:-1', '#EXTINF:-1 group-title="' . $new_category . '"', $trimmed);
+            if ($modified_line === $trimmed) {
+                $modified_line = preg_replace('/#EXTINF:([-\d]+)/', '#EXTINF:$1 group-title="' . $new_category . '"', $trimmed);
             }
-        } elseif (stripos($line, $target_category) !== false) {
-            // যদি group-title ট্যাগ না থাকে কিন্তু লাইনে Toffee শব্দটি থাকে
-            $is_toffee = true;
         }
-
-        if ($is_toffee) {
-            $new_m3u .= $line . "\n";
-            
-            // পরবর্তী লাইনগুলোতে থাকা URL বা ট্যাগগুলো ক্যাচ করা
-            while (isset($lines[$i + 1])) {
-                $next_line = trim($lines[$i + 1]);
-                if (empty($next_line)) {
-                    $i++;
-                    continue;
-                }
-                // নতুন কোনো #EXTINF শুরু হলে লুপ থামবে
-                if (strpos($next_line, '#EXTINF:') === 0) {
-                    break;
-                }
-                $new_m3u .= $next_line . "\n";
-                $i++;
-            }
+        $new_m3u .= $modified_line . "\n";
+    } else if (strpos($trimmed, '#') !== 0) {
+        // স্ট্রিম URL লাইন
+        $new_m3u .= $trimmed . "\n";
+    } else {
+        // অন্যান্য ট্যাগ বা হেডারের জন্য (যেমন #EXTVLCOPT ইত্যাদি)
+        if (strpos($trimmed, '#EXTM3U') === false) {
+            $new_m3u .= $trimmed . "\n";
         }
     }
 }
 
 file_put_contents($output_file, $new_m3u);
-echo "Successfully updated $output_file\n";
+echo "All channels successfully grouped under '$new_category' category!\n";
