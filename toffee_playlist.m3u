@@ -5,7 +5,7 @@ https://alixbd.com/playlistconfig/channel/1.m3u8
 https://alixbd.com/playlistconfig/channel/2.m3u8
 #EXTINF:-1 tvg-logo="https://assets-prod.services.toffeelive.com/V__o054BObUt2AG6LL5C/posters/84590b8d-6430-4ba8-a0a5-757bf2f57c05.png" group-title="Toffee",WC Match Recap
 https://alixbd.com/playlistconfig/channel/3.m3u8
-#EXTINF:-1 tvg-logo="https://assets-prod.services.toffeelive.com/LnlKhJkBcqxnFHJBU8GM/posters/d0d2f903-5843-4de4-bbc5-7317866f78e2.png" group-title="Toffee",BFL | Live 3
+#EXTINF:-1 tvg-logo="https://assets-prod.services.toffeelive.com/LnlKhJkBcqxnFHJBU8GM/posters/ec4cb52b-a5cf-4eba-8f03-7fc73f75bf55.png" group-title="Toffee",FC | Live 3
 https://alixbd.com/playlistconfig/channel/4.m3u8
 #EXTINF:-1 tvg-logo="https://assets-prod.services.toffeelive.com/F9UM56ABalKyvLQIr9B1/posters/26081e64-671e-44a8-95ba-a692bfaae49c.jpeg" group-title="Toffee",AWSN TV
 https://alixbd.com/playlistconfig/channel/5.m3u8
@@ -155,7 +155,5 @@ https://alixbd.com/playlistconfig/channel/76.m3u8
 https://alixbd.com/playlistconfig/channel/77.m3u8
 #EXTINF:-1 tvg-logo="https://assets-prod.services.toffeelive.com/QMwWnZUBtpl-Sbt7S2sx/posters/8cad9a82-842a-47bf-a060-f17011f11c07.png" group-title="Toffee",& Pictures HD
 https://alixbd.com/playlistconfig/channel/78.m3u8
-#EXTINF:-1 tvg-logo="https://assets-prod.services.toffeelive.com/f_png,w_300,q_85/Ey9jtJoBNnOkwJLWw06R/posters/177c9f64-6d2b-4431-aeee-4a118d9e4f70.png" group-title="Toffee",BFL | Live 4
-https://alixbd.com/playlistconfig/channel/79.m3u8
 #EXTINF:-1 tvg-logo="https://assets-prod.services.toffeelive.com/f_png,w_300,q_85/nUB7JJ4BuUSiBsg_sKJF/posters/f5596ca8-8735-474d-bc6f-b48e3f90464d.png" group-title="Toffee",BFL | Live 5
-https://alixbd.com/playlistconfig/channel/80.m3u8
+https://alixbd.com/playlistconfig/channel/79.m3u8
