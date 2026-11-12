@@ -1,6 +1,6 @@
 <?php
 
-$source_url = "https://alixbd.com/playlistconfig/playlist.m3u";
+$source_url = "https://tv9.workerbot-tv9.workers.dev/toffee.m3u";
 $new_category = "Toffee";
 $output_file = "toffee_playlist.m3u";
 
