@@ -24,13 +24,19 @@
             color: #e91e63;
             text-align: center;
         }
-        .link-box {
+        .link-box, .token-box {
             background: #eef2f3;
             padding: 15px;
             border-radius: 5px;
             word-break: break-all;
-            margin: 20px 0;
-            font-family: monospace;
+            margin: 15px 0;
+        }
+        input[type="password"] {
+            width: calc(100% - 110px);
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 5px;
         }
         .btn {
             display: inline-block;
@@ -39,10 +45,23 @@
             padding: 10px 20px;
             text-decoration: none;
             border-radius: 5px;
-            margin: 5px 0;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px 5px 5px 0;
         }
         .btn:hover {
             background: #d81b60;
+        }
+        .btn-update {
+            background: #2196F3;
+        }
+        .btn-update:hover {
+            background: #0b7dda;
+        }
+        #statusMsg {
+            margin-top: 10px;
+            font-weight: bold;
         }
         pre {
             background: #272822;
@@ -58,39 +77,115 @@
 
 <div class="container">
     <h1>Toffee Live M3U Playlist</h1>
-    <p>Ei playlist-ti protinoto GitHub Actions er মাধ্যমে প্রতি ৩ ঘণ্টা পর পর অটো-আপডেট হয়।</p>
+    <p>এটি প্রতি ৩ ঘণ্টা পর পর অটো-আপডেটেড হয়। আপনি চাইলে নিচের টোকেন সেট করে ম্যানুয়ালি আপডেট করতে পারেন।</p>
     
-    <h3>Apnar M3U Direct Link:</h3>
-    <div class="link-box" id="m3uLink">Loading link...</div>
-    <a href="#" id="downloadBtn" class="btn" download="toffee_playlist.m3u">Download M3U File</a>
+    <!-- GitHub Token Input Section -->
+    <div class="token-box">
+        <label><b>GitHub Personal Access Token (PAT):</b></label><br><br>
+        <input type="password" id="tokenInput" placeholder="এখানে আপনার টোকেনটি পেস্ট করুন">
+        <button class="btn" onclick="saveToken()">Save Token</button>
+        <p id="tokenStatus" style="font-size: 13px; color: green; margin-top: 5px;"></p>
+    </div>
 
-    <h3>Live Playlist Preview (Last Updated):</h3>
-    <pre id="playlistContent">Loading playlist content...</pre>
+    <!-- ম্যানুয়াল আপডেট বাটন -->
+    <button class="btn btn-update" onclick="triggerUpdate()">🔄 Update Playlist Now</button>
+    <p id="statusMsg"></p>
+
+    <h3>আপনার M3U ডাইরেক্ট লিঙ্ক:</h3>
+    <div class="link-box" id="m3uLink">ਲિંক লোড হচ্ছে...</div>
+    <a href="#" id="copyBtn" class="btn" onclick="copyLink(event)">📋 Link Copy করুন</a>
+
+    <h3>লাইভ প্লেলিস্ট প্রিভিউ (শেষ আপডেট):</h3>
+    <pre id="playlistContent">ప్లేলিস্ট লোড হচ্ছে...</pre>
 </div>
 
 <script>
-    // GitHub Raw Link automatic generate korar jonno
-    const username = window.location.hostname.split('.')[0];
-    const repoParts = window.location.pathname.split('/');
-    const repo = repoParts[1] || '';
-    
-    // Jodi GitHub Pages local ba custom domain hoy, tar jonno direct link
-    const rawUrl = `https://raw.githubusercontent.com/${username}/${repo}/main/toffee_playlist.m3u`;
-    
-    document.getElementById('m3uLink').innerText = rawUrl;
-    document.getElementById('downloadBtn').href = rawUrl;
+    const username = "apurbo26"; // আপনার GitHub Username
+    const repo = "toffee";       // আপনার Repository Name
 
-    // M3U file-er content webpage-e dekhanor jonno
-    fetch('toffee_playlist.m3u?' + new Date().getTime())
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById('playlistContent').innerText = data;
+    const rawUrl = `https://raw.githubusercontent.com/${username}/${repo}/main/toffee_playlist.m3u`;
+    document.getElementById('m3uLink').innerText = rawUrl;
+
+    // পেজ লোড হওয়ার সময় লোকালস্টোরেজ থেকে টোকেন চেক করা
+    window.onload = function() {
+        const savedToken = localStorage.getItem('github_pat_token');
+        if (savedToken) {
+            document.getElementById('tokenInput').value = savedToken;
+            document.getElementById('tokenStatus').innerText = "✓ টোকেনটি সেভ করা আছে।";
+        }
+    }
+
+    // টোকেন ব্রাউজারে সেভ করার ফাংশন
+    function saveToken() {
+        const token = document.getElementById('tokenInput').value.trim();
+        if (token) {
+            localStorage.setItem('github_pat_token', token);
+            document.getElementById('tokenStatus').innerText = "✓ সফলভাবে টোকেন সেভ হয়েছে!";
+        } else {
+            alert('দয়া করে একটি সঠিক টোকেন দিন।');
+        }
+    }
+
+    // প্লেলিস্ট কন্টেন্ট লোড করা
+    function loadPlaylist() {
+        fetch('toffee_playlist.m3u?' + new Date().getTime())
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('playlistContent').innerText = data;
+            })
+            .catch(error => {
+                document.getElementById('playlistContent').innerText = 'প্লেলিস্ট লোড করতে সমস্যা হচ্ছে।';
+            });
+    }
+    loadPlaylist();
+
+    // লিঙ্ক কপি করার ফাংশন
+    function copyLink(e) {
+        e.preventDefault();
+        navigator.clipboard.writeText(rawUrl).then(() => {
+            alert('লিঙ্কটি সফলভাবে কপি হয়েছে!');
+        });
+    }
+
+    // এক ক্লিকে আপডেট করার ফাংশন
+    function triggerUpdate() {
+        const token = localStorage.getItem('github_pat_token') || document.getElementById('tokenInput').value.trim();
+        const statusMsg = document.getElementById('statusMsg');
+
+        if (!token) {
+            alert('আগে GitHub Token দিয়ে Save Token বাটনে ক্লিক করুন!');
+            return;
+        }
+
+        statusMsg.style.color = "#2196F3";
+        statusMsg.innerText = "আপডেট রিকোয়েস্ট পাঠানো হচ্ছে, অপেক্ষা করুন...";
+
+        fetch(`https://api.github.com/repos/${username}/${repo}/dispatches`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/vnd.github+json',
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                event_type: 'update_playlist'
+            })
+        })
+        .then(response => {
+            if (response.ok) {
+                statusMsg.style.color = "#4CAF50";
+                statusMsg.innerText = "সফল! ব্যাকগ্রাউন্ডে আপডেট শুরু হয়েছে। ১ মিনিট পর পেজটি রিফ্রেশ করুন।";
+            } else {
+                statusMsg.style.color = "#f44336";
+                statusMsg.innerText = "আপডেট করতে ব্যর্থ হয়েছে। আপনার টোকেনটি সঠিক আছে কি না চেক করুন।";
+            }
         })
         .catch(error => {
-            document.getElementById('playlistContent').innerText = 'Playlist load korte somossa hocche.';
+            statusMsg.style.color = "#f44336";
+            statusMsg.innerText = "নেটওয়ার্ক ত্রুটি ঘটেছে।";
         });
+    }
 </script>
 
 </body>
-  </html>
-  
+</html>
