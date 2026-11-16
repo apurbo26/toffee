@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Toffee Playlist Manager</title>
-    <!-- SortableJS CDN ড্রাগ অ্যান্ড ড্রপ করার জন্য -->
+    <!-- SortableJS CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         body {
@@ -61,7 +61,6 @@
             font-weight: bold;
         }
         
-        /* চ্যানেল লিস্ট ও ড্রাগ অ্যান্ড ড্রপ স্টাইল */
         #channelList {
             list-style: none;
             padding: 0;
@@ -79,11 +78,7 @@
             margin: 5px;
             border: 1px solid #e0e0e0;
             border-radius: 4px;
-            cursor: grab;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        .channel-item:active {
-            cursor: grabbing;
         }
         .channel-logo {
             width: 40px;
@@ -98,11 +93,14 @@
             font-size: 16px;
             color: #333;
         }
+        /* Dan dike thaka move / drag handle icon */
         .drag-handle {
             margin-left: auto;
-            color: #999;
-            font-size: 20px;
-            cursor: grab;
+            color: #666;
+            font-size: 22px;
+            cursor: move;
+            padding: 0 10px;
+            user-select: none;
         }
     </style>
 </head>
@@ -110,39 +108,37 @@
 
 <div class="container">
     <h1>Toffee Playlist Manager</h1>
-    <p>চ্যানেলগুলোর ক্রম পরিবর্তন করতে মাউস বা আঙুল দিয়ে টেনে (Drag & Drop) উপরে-নিচে সাজান এবং সেভ করুন।</p>
+    <p>Dan diker handle (☰) icon-er upor chepe dhore channel upore ba niche tanle khub sahajjei move korano jabe.</p>
     
-    <!-- GitHub Token Input Section -->
     <div class="token-box">
         <label><b>GitHub Personal Access Token (PAT):</b></label><br><br>
-        <input type="password" id="tokenInput" placeholder="আপনার GitHub টোকেন দিন">
+        <input type="password" id="tokenInput" placeholder="Apnar GitHub token দিন">
         <button class="btn" onclick="saveToken()">Save Token</button>
         <p id="tokenStatus" style="font-size: 13px; color: green; margin-top: 5px;"></p>
     </div>
 
-    <!-- Actions -->
     <div class="action-box">
         <button class="btn btn-update" onclick="triggerUpdateScript()">🔄 Fetch & Update from Source</button>
         <button class="btn btn-save" onclick="saveSortedPlaylist()">💾 Save New Order to GitHub</button>
         <p id="statusMsg"></p>
     </div>
 
-    <h3>চ্যানেল তালিকা (লোগোসহ):</h3>
+    <h3>Channel List:</h3>
     <ul id="channelList">
-        <li style="padding: 20px; text-align: center;">প্লেলিস্ট লোড হচ্ছে...</li>
+        <li style="padding: 20px; text-align: center;">Playlist load hocche...</li>
     </ul>
 </div>
 
 <script>
-    const username = "apurbo26"; // আপনার GitHub ইউজারনেম
-    const repo = "toffee";       // আপনার রিপোজিটরির নাম
-    let parsedChannels = [];     // চ্যানেল ডেটা রাখার জন্য অ্যারে
+    const username = "apurbo26";
+    const repo = "toffee";
+    let parsedChannels = [];
 
     window.onload = function() {
         const savedToken = localStorage.getItem('github_pat_token');
         if (savedToken) {
             document.getElementById('tokenInput').value = savedToken;
-            document.getElementById('tokenStatus').innerText = "✓ টোকেন সেভ করা আছে।";
+            document.getElementById('tokenStatus').innerText = "✓ Token save kora ache.";
         }
         loadAndParsePlaylist();
     }
@@ -151,13 +147,12 @@
         const token = document.getElementById('tokenInput').value.trim();
         if (token) {
             localStorage.setItem('github_pat_token', token);
-            document.getElementById('tokenStatus').innerText = "✓ সফলভাবে টোকেন সেভ হয়েছে!";
+            document.getElementById('tokenStatus').innerText = "✓ Safolbhabe token save hoyeche!";
         } else {
-            alert('দয়া করে সঠিক টোকেন দিন।');
+            alert('Doya kore sothik token দিন।');
         }
     }
 
-    // M3U ফাইল ফেচ করে পার্স করা এবং লোগোসহ লিস্ট তৈরি করা
     function loadAndParsePlaylist() {
         fetch('toffee_playlist.m3u?' + new Date().getTime())
             .then(response => response.text())
@@ -170,12 +165,8 @@
                     let line = lines[i].trim();
                     if (line.startsWith('#EXTINF:')) {
                         currentChannel.extinf = line;
-                        
-                        // লোগো (tvg-logo) এক্সট্রাক্ট করা
                         let logoMatch = line.match(/tvg-logo=["']([^"']+)["']/i);
                         currentChannel.logo = logoMatch ? logoMatch[1] : 'https://via.placeholder.com/40';
-
-                        // চ্যানেলের নাম এক্সট্রাক্ট করা
                         let nameParts = line.split(',');
                         currentChannel.name = nameParts.length > 1 ? nameParts[nameParts.length - 1].trim() : 'Unknown Channel';
                     } else if (line && !line.startsWith('#')) {
@@ -189,15 +180,14 @@
                 renderChannelList();
             })
             .catch(error => {
-                document.getElementById('channelList').innerHTML = '<li style="padding: 20px; text-align: center; color: red;">প্লেলিস্ট লোড করতে সমস্যা হয়েছে।</li>';
+                document.getElementById('channelList').innerHTML = '<li style="padding: 20px; text-align: center; color: red;">Playlist load korte somossa hoyeche.</li>';
             });
     }
 
-    // HTML-এ চ্যানেল রেন্ডার করা এবং SortableJS যুক্ত করা
     function renderChannelList() {
         const listEl = document.getElementById('channelList');
         if (parsedChannels.length === 0) {
-            listEl.innerHTML = '<li style="padding: 20px; text-align: center;">কোনো চ্যানেল পাওয়া যায়নি।</li>';
+            listEl.innerHTML = '<li style="padding: 20px; text-align: center;">Kono channel paoya jayni.</li>';
             return;
         }
 
@@ -207,18 +197,17 @@
                 <li class="channel-item" data-index="${index}">
                     <img src="${ch.logo}" class="channel-logo" onerror="this.src='https://via.placeholder.com/40'">
                     <span class="channel-name">${ch.name}</span>
-                    <span class="drag-handle">☰</span>
+                    <span class="drag-handle" title="Drag to reorder">☰</span>
                 </li>
             `;
         });
         listEl.innerHTML = html;
 
-        // ড্রাগ অ্যান্ড ড্রপ সচল করা
+        // SortableJS-er madhyome handle class nirdisto kore dewa, jate shudhu icon dhorei drag kora jay
         new Sortable(listEl, {
             animation: 150,
-            handle: '.channel-item',
+            handle: '.drag-handle', // Shudhu ei icon-er upor chepe tanlei move hobe, baki jaiga diye page scroll hobe
             onEnd: function() {
-                // ড্রাগ শেষ হলে অ্যারে রিঅর্ডার করা
                 let newOrder = [];
                 document.querySelectorAll('.channel-item').forEach(item => {
                     let idx = item.getAttribute('data-index');
@@ -229,16 +218,14 @@
         });
     }
 
-    // ব্যাকগ্রাউন্ডে সোর্স থেকে স্ক্রিপ্ট রান করে আপডেট করা
     function triggerUpdateScript() {
-        executeGitHubDispatch('update_playlist', "সফল! সোর্স থেকে প্লেলিস্ট ফেচ করা শুরু হয়েছে। ১ মিনিট পর পেজ রিফ্রেশ করুন।");
+        executeGitHubDispatch('update_playlist', "Safol! Source theke playlist fetch shuru hoyeche. 1 minute por page refresh korun.");
     }
 
-    // সাজানো চ্যানেলগুলো গিটহাবে কমিট করা
     function saveSortedPlaylist() {
         const token = localStorage.getItem('github_pat_token') || document.getElementById('tokenInput').value.trim();
         if (!token) {
-            alert('আগে GitHub Token দিয়ে Save Token করুন!');
+            alert('Age GitHub Token diye Save Token korun!');
             return;
         }
 
@@ -249,21 +236,17 @@
 
         const statusMsg = document.getElementById('statusMsg');
         statusMsg.style.color = "#2196F3";
-        statusMsg.innerText = "সাজানো প্লেলিস্ট GitHub-এ সেভ হচ্ছে...";
+        statusMsg.innerText = "Sajano playlist GitHub-e save hocche...";
 
-        // GitHub Contents API ব্যবহার করে ফাইল আপডেট করা
         const filePath = "toffee_playlist.m3u";
         const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${filePath}`;
 
-        // প্রথমে ফাইলের বর্তমান SHA ফেচ করা দরকার হয়
         fetch(apiUrl, {
             headers: { 'Authorization': `Bearer ${token}` }
         })
         .then(res => res.json())
         .then(fileData => {
             const sha = fileData.sha;
-            
-            // Base64 এনকোড করা
             const encodedContent = btoa(unescape(encodeURIComponent(newM3uContent)));
 
             return fetch(apiUrl, {
@@ -273,7 +256,7 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    message: "Manual reorder channels via web interface",
+                    message: "Manual reorder channels via drag handle",
                     content: encodedContent,
                     sha: sha
                 })
@@ -282,15 +265,15 @@
         .then(response => {
             if (response.ok) {
                 statusMsg.style.color = "#4CAF50";
-                statusMsg.innerText = "সফল! আপনার সাজানো ক্রম GitHub-এ সেভ হয়ে গেছে।";
+                statusMsg.innerText = "Safol! Apnar sajano krom GitHub-e save hoye geche.";
             } else {
                 statusMsg.style.color = "#f44336";
-                statusMsg.innerText = "সেভ করতে ব্যর্থ হয়েছে। টোকেন বা পারমিশন চেক করুন।";
+                statusMsg.innerText = "Save korte byrtho hoyeche. Token ba permission check korun.";
             }
         })
         .catch(err => {
             statusMsg.style.color = "#f44336";
-            statusMsg.innerText = "ত্রুটি ঘটেছে: " + err.message;
+            statusMsg.innerText = "Truti ghoteche: " + err.message;
         });
     }
 
@@ -299,12 +282,12 @@
         const statusMsg = document.getElementById('statusMsg');
 
         if (!token) {
-            alert('আগে GitHub Token দিয়ে Save Token করুন!');
+            alert('Age GitHub Token diye Save Token korun!');
             return;
         }
 
         statusMsg.style.color = "#2196F3";
-        statusMsg.innerText = "অনুরোধ পাঠানো হচ্ছে...";
+        statusMsg.innerText = "Anurodh pathano hocche...";
 
         fetch(`https://api.github.com/repos/${username}/${repo}/dispatches`, {
             method: 'POST',
@@ -321,16 +304,15 @@
                 statusMsg.innerText = successMessage;
             } else {
                 statusMsg.style.color = "#f44336";
-                statusMsg.innerText = "রিকোয়েস্ট ব্যর্থ হয়েছে। টোকেন চেক করুন।";
+                statusMsg.innerText = "Request byrtho hoyeche. Token check korun.";
             }
         })
         .catch(() => {
             statusMsg.style.color = "#f44336";
-            statusMsg.innerText = "নেটওয়ার্ক ত্রুটি ঘটেছে।";
+            statusMsg.innerText = "Network truti ghoteche.";
         });
     }
 </script>
 
 </body>
-    </html>
-    
+</html>
