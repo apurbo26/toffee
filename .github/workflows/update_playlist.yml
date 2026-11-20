@@ -29,6 +29,6 @@ jobs:
       - name: Commit and Push changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Auto updated Toffee playlist"
+          commit_message: "Auto updated Toffee playlist via cron"
           file_pattern: "toffee_playlist.m3u"
           
